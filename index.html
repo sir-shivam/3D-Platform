@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Platform with Rotation and Controls</title>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+        let scene, camera, renderer, controls;
+
+        // Initialize Three.js scene
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xD1E9F6);
+            
+            
+            // Increase FOV for wider view of the platform
+            camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 1000);
+            
+            // Move the camera further back to see the entire platform
+            camera.position.set(450,50,-102);  // Adjusted for better visibility
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            // Lighting
+            const light = new THREE.DirectionalLight(0xffffff, 1);
+            light.position.set(10, 10, 10).normalize();
+            scene.add(light);
+
+            // Load the .glb platform model
+            const loader = new THREE.GLTFLoader();
+            loader.load('sih2.glb', function(gltf) {
+                gltf.scene.scale.set(2, 2, 2);  // Adjust scale if necessary
+                scene.add(gltf.scene);
+            }, undefined, function(error) {
+                console.error(error);
+            });
+
+            // Add OrbitControls for click-and-drag rotation
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true; // For smoother rotation
+            controls.dampingFactor = 0.05;
+            controls.screenSpacePanning = false; // Disable panning up/down
+            controls.minDistance = 20; // Minimum zoom distance
+            controls.maxDistance = 500; // Maximum zoom distance
+            controls.maxPolarAngle = Math.PI / 2; // Prevent looking below platform
+
+            // Adjust camera for full platform visibility
+            controls.update();  // Apply initial camera control settings
+
+            // Render and animate the scene
+            animate();
+        }
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update(); // Required for damping to work
+            renderer.render(scene, camera);
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Initialize the scene
+        init();
+    </script>
+</body>
+</html>
